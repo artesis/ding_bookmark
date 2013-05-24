@@ -309,6 +309,7 @@ function ding_bookmark_flag_view($entity_type, $entity) {
             'use-ajax',
             'btn',
             'btn-artesis-turquoise',
+            'bookmark',
           ),
         ),
         'html' => TRUE,
