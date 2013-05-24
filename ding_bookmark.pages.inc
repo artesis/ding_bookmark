@@ -111,10 +111,20 @@ function theme_ding_bookmark_remove_form($variables) {
       // Create delete link.
       $delete_link_query = drupal_get_destination() + array('token' => flag_get_token($item_wid));
       $delete_link = array(
-        '#prefix' => '<p class="ding-entity-button">',
-        '#suffix' => '</p>',
-        '#type' => 'markup',
-        '#markup' => l(t($flag->unflag_short), 'flag/unflag/bookmark/' . $item_wid, array('query' => $delete_link_query)),
+        '#theme' => 'link',
+        '#text' => '<i class="icon-white icon-remove-sign"></i>&nbsp;' . t($flag->unflag_short),
+        '#path' => 'flag/unflag/bookmark/' . $item_wid,
+        '#options' => array(
+          'attributes' => array(
+            'class' => array(
+              'use-ajax',
+              'btn',
+              'btn-artesis-turquoise'
+            )
+          ),
+          'html' => TRUE,
+          'query' => $delete_link_query,
+        ),
       );
 
       // Reservation button

@@ -300,16 +300,20 @@ function ding_bookmark_flag_view($entity_type, $entity) {
 
   $flag_confirm_form = array(
     array(
-      '#prefix' => '<div class="bookmark-link-ajax">',
-      '#suffix' => '</div>',
-      '#markup' => l(
-        t('Add to bookmarks'),
-        'ding_bookmark/nojs/bookmark/' . $entity_id,
-        array(
-          'attributes' => array('class' => array('use-ajax')),
-          'absolute' => TRUE,
-          'query' => $link_query,
-        )
+      '#theme' => 'link',
+      '#text' => '<i class="icon-white icon-bookmark"></i>&nbsp;' . t($bookmark_flag->flag_short),
+      '#path' => 'ding_bookmark/nojs/bookmark/' . $entity_id,
+      '#options' => array(
+        'attributes' => array(
+          'class' => array(
+            'use-ajax',
+            'btn',
+            'btn-artesis-turquoise',
+          ),
+        ),
+        'html' => TRUE,
+        'query' => $link_query,
+        'absolute' => TRUE,
       ),
     ),
   );
