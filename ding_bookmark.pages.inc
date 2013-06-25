@@ -133,18 +133,18 @@ function theme_ding_bookmark_remove_form($variables) {
         // @TODO Create theme function for this, so class can be change in the
         // theme layer.
         $reservation_link = array(
-          '#prefix' => '<p id="wid' . $item_wid . '" class="ding-entity-button ding-bookmark-reservation-button">',
-          '#suffix' => '</p>',
           '#type' => 'markup',
           '#markup' => drupal_render(module_invoke('ding_reservation', 'ding_entity_buttons', 'ding_entity', $form['#builded_entities'][$item_wid]['#object'], 'ajax')),
         );
       }
 
+      $row_actions = '<div class="btn-group actions">' . drupal_render($delete_link) . drupal_render($reservation_link) . '</div>';
+
       //Add row.
       $rows[] = array(
         drupal_render($form['items'][$key]),
         drupal_render($form['#builded_entities'][$item_wid]), // Theme item as a teaser.
-        drupal_render($delete_link) . drupal_render($reservation_link),
+        $row_actions,
       );
     }
   }
