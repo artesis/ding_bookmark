@@ -117,9 +117,9 @@ function theme_ding_bookmark_remove_form($variables) {
         '#options' => array(
           'attributes' => array(
             'class' => array(
-              'use-ajax',
               'btn',
-              'btn-artesis-turquoise'
+              'btn-artesis-turquoise',
+              'bookmark',
             )
           ),
           'html' => TRUE,
