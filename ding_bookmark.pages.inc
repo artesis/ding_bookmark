@@ -54,11 +54,17 @@ function ding_bookmark_remove_form($form, &$form_state, $entities) {
 
   $form['actions'] = array(
     '#type' => 'actions',
+    '#attributes' => array(
+      'class' => array('d-reservations', 'ui-buttons-panel'),
+    ),
   );
 
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Delete selected'),
+    '#attributes' => array(
+      'class' => array('d-reservations-delete'),
+    ),
   );
 
   return $form;
