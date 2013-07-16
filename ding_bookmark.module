@@ -311,6 +311,7 @@ function ding_bookmark_flag_view($entity_type, $entity) {
             'btn-artesis-turquoise',
             'bookmark',
           ),
+          'id' => drupal_html_id('bookmark-' . $entity_id),
         ),
         'html' => TRUE,
         'query' => $link_query,
