@@ -41,11 +41,7 @@
         // Dynamic form, so reattach the behaviors.
         Drupal.attachBehaviors(form);
         form.hide();
-        // Make sure the behaviors were attached.
-        setTimeout(function() {
-          // Call mousedown(), since click() event is forbidden by #ajax['prevent'].
-          form.find('.form-submit').mousedown();
-        }, 500);
+        form.find('.form-submit').mousedown();
       }
     });
   }
