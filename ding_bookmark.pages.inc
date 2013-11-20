@@ -91,7 +91,6 @@ function ding_bookmark_remove_form_submit($form, &$form_state) {
 function theme_ding_bookmark_remove_form($variables) {
   $output = "";
   $form = $variables['form'];
-  $flag = flag_get_flag('bookmark');
 
   // Add 'select all' checkbox.
   drupal_add_js('misc/tableselect.js');
@@ -114,37 +113,18 @@ function theme_ding_bookmark_remove_form($variables) {
       $item_wid = $key;
       // Clean checkbox
       unset($form['items'][$key]['#title']);
-      // Create delete link.
-      $delete_link_query = drupal_get_destination() + array('token' => flag_get_token($item_wid));
-      $delete_link = array(
-        '#theme' => 'link',
-        '#text' => '<i class="icon-white icon-remove-sign"></i>&nbsp;' . t($flag->unflag_short),
-        '#path' => 'flag/unflag/bookmark/' . $item_wid,
-        '#options' => array(
-          'attributes' => array(
-            'class' => array(
-              'btn',
-              'btn-artesis-turquoise',
-              'bookmark',
-            )
-          ),
-          'html' => TRUE,
-          'query' => $delete_link_query,
-        ),
-      );
 
-      // Reservation button
-      $reservation_div = NULL;
+      // Create action buttons.
+      $reservable = FALSE;
       if ($form['#builded_entities'][$item_wid]['#object']->ding_entity_type == 'ding_entity' && $form['#builded_entities'][$item_wid]['#object']->is('reservable')) {
-        // @TODO Create theme function for this, so class can be change in the
-        // theme layer.
-        $reservation_link = array(
-          '#type' => 'markup',
-          '#markup' => drupal_render(module_invoke('ding_reservation', 'ding_entity_buttons', 'ding_entity', $form['#builded_entities'][$item_wid]['#object'], 'ajax')),
-        );
+        $reservable = TRUE;
       }
 
-      $row_actions = '<div class="btn-group actions">' . drupal_render($delete_link) . drupal_render($reservation_link) . '</div>';
+      $buttons = field_get_items('ting_object', $form['#builded_entities'][$item_wid]['#object'], 'ding_entity_buttons');
+      $buttons_output = field_view_value('ting_object', $form['#builded_entities'][$item_wid]['#object'], 'ding_entity_buttons', $buttons);
+      $buttons_build = ding_bookmark_filter_buttons($buttons_output, $item_wid, $reservable);
+      $row_actions = '<div class="btn-group actions">' . drupal_render($buttons_build) . '</div>';
+      unset($buttons, $buttons_output, $buttons_build);
 
       //Add row.
       $rows[] = array(
@@ -199,4 +179,76 @@ function ding_bookmark_dummy_form($form, &$form_state) {
   $form = array();
   $form['#attributes'] = array('style' => array('visibility:hidden;'));
   return $form;
+}
+
+/**
+ * Filter and fix action buttons.
+ *
+ * @param array $buttons
+ *   Item action buttons.
+ * @param string $item_id
+ *   Item ID.
+ * @param bool $reservable
+ *   Is item reservable?
+ *
+ * @return array
+ *   Filtered and fixed buttons.
+ */
+function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
+  $keys = array_keys($buttons);
+  foreach($keys as $i) {
+    if (empty($buttons[$i]['#options']['attributes']['class'])) {
+      continue;
+    }
+
+    $classes = $buttons[$i]['#options']['attributes']['class'];
+    // Remove "Find it here" button.
+    if (array_search('find-it-here', $classes) !== FALSE) {
+      unset($buttons[$i]);
+      continue;
+    }
+    // Remove "Show info" button.
+    if (array_search('show-info', $classes) !== FALSE) {
+      unset($buttons[$i]);
+      continue;
+    }
+    // Remove "Hide info" button.
+    if (array_search('hide-info', $classes) !== FALSE) {
+      unset($buttons[$i]);
+      continue;
+    }
+    // Hide "Reserve" button if it is not reservable.
+    if (array_search('reservation', $classes) !== FALSE && $reservable == FALSE) {
+      unset($buttons[$i]);
+      continue;
+    }
+
+    // Change bookmark button.
+    if (array_search('bookmark', $classes) !== FALSE) {
+      // Create delete link.
+      $flag = flag_get_flag('bookmark');
+      $delete_link_query = drupal_get_destination() + array('token' => flag_get_token($item_id));
+      $delete_link = array(
+        '#theme' => 'link',
+        '#text' => '<i class="icon-white icon-remove-sign"></i>&nbsp;' . t($flag->unflag_short),
+        '#path' => 'flag/unflag/bookmark/' . $item_id,
+        '#options' => array(
+          'attributes' => array(
+            'class' => array(
+              'btn',
+              'btn-artesis-turquoise',
+              'bookmark',
+            )
+          ),
+          'html' => TRUE,
+          'query' => $delete_link_query,
+        ),
+      );
+
+      $buttons[$i] = $delete_link;
+      continue;
+    }
+  }
+
+  return $buttons;
 }

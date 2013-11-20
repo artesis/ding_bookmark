@@ -196,7 +196,7 @@ function ding_bookmark_ding_entity_buttons($type, $entity) {
     drupal_add_library('system', 'jquery.form');
     drupal_add_js(drupal_get_path('module', 'ding_bookmark') . '/js/ding_bookmark.js');
     $bookmark_flag_button = ding_bookmark_flag_view($type, $entity);
-    return array($bookmark_flag_button);
+    return $bookmark_flag_button;
   }
 }
 
