@@ -138,7 +138,7 @@ function theme_ding_bookmark_remove_form($variables) {
 
   if (count($rows)) {
 
-    $output .= theme('table', array(
+    $output .= theme('table__alternative', array(
       'header' => $header,
       'rows' => $rows,
       'attributes' => array('width' => 'auto'),
