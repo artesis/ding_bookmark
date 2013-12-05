@@ -126,11 +126,20 @@ function theme_ding_bookmark_remove_form($variables) {
       $row_actions = '<div class="btn-group actions">' . drupal_render($buttons_build) . '</div>';
       unset($buttons, $buttons_output, $buttons_build);
 
-      //Add row.
+      //Add row (checkbox, item, buttons).
       $rows[] = array(
-        drupal_render($form['items'][$key]),
-        drupal_render($form['#builded_entities'][$item_wid]), // Theme item as a teaser.
-        $row_actions,
+        array(
+          'data' => drupal_render($form['items'][$key]),
+          'class' => 'checkbox',
+        ),
+        array(
+          'data' => drupal_render($form['#builded_entities'][$item_wid]),
+          'class' => 'object',
+        ),
+        array(
+          'data' => $row_actions,
+          'class' => 'buttons',
+        ),
       );
     }
   }
