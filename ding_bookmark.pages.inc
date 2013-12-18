@@ -41,15 +41,38 @@ function ding_bookmark_remove_form($form, &$form_state, $entities) {
     // Build item view.
     $item_view_build = ding_bookmark_item_view($entity_type, $entity_id);
     if ($item_view_build) {
-      $item_options[$entity_id] = $entity_id;
+      $item_options[$entity_id]['title']['data'] = drupal_render($item_view_build);
+      $item_options[$entity_id]['title']['class'] = 'title';
       $form['#builded_entities'][$entity_id] = $item_view_build;
+
+      // Create action buttons.
+      $reservable = FALSE;
+      if ($item_view_build['#object']->ding_entity_type == 'ding_entity' && $item_view_build['#object']->is('reservable')) {
+        $reservable = TRUE;
+      }
+
+      $buttons = field_get_items('ting_object', $item_view_build['#object'], 'ding_entity_buttons');
+      $buttons_output = field_view_value('ting_object', $item_view_build['#object'], 'ding_entity_buttons', $buttons);
+      $buttons_build = ding_bookmark_filter_buttons($buttons_output, $entity_id, $reservable);
+      $row_actions = '<div class="btn-group actions">' . drupal_render($buttons_build) . '</div>';
+      unset($buttons, $buttons_output, $buttons_build);
+      $item_options[$entity_id]['actions']['data'] = $row_actions;
+      $item_options[$entity_id]['actions']['class'] = 'actions';
     }
   }
 
-  $form['items'] = array(
-    '#type' => 'checkboxes',
+  $header = array(
+    'title' => t('Title'),
+    'actions' => t('Actions'),
+  );
+
+  $form['bookmarks'] = array(
+    '#type' => 'tableselect_form',
+    '#header' => $header,
     '#options' => $item_options,
-    '#required' => TRUE,
+    '#empty' => '',
+    '#_choice_last' => TRUE,
+    '#_select_all_label' => t('Select all'),
   );
 
   $form['actions'] = array(
@@ -75,7 +98,7 @@ function ding_bookmark_remove_form($form, &$form_state, $entities) {
  */
 function ding_bookmark_remove_form_submit($form, &$form_state) {
   // Filter selected items.
-  $items_to_delete = array_filter($form_state['values']['items']);
+  $items_to_delete = array_filter($form_state['values']['bookmarks']);
   if ($items_to_delete) {
     // Unflag all selected items.
     $flag = flag_get_flag('bookmark');
@@ -83,81 +106,6 @@ function ding_bookmark_remove_form_submit($form, &$form_state) {
       $flag->flag('unflag', $item_wid);
     }
   }
-}
-
-/**
- * Theme form as a table.
- */
-function theme_ding_bookmark_remove_form($variables) {
-  $output = "";
-  $form = $variables['form'];
-
-  // Add 'select all' checkbox.
-  drupal_add_js('misc/tableselect.js');
-  $header = array(
-    array('class' => array('select-all')),
-    array(
-      'data' => t('Title'),
-      'class' => 'title',
-    ),
-    '',
-  );
-
-  // Add classes to table header columns.
-
-  // Create table rows.
-  $rows = array();
-  if (!empty($form['items']['#options'])) {
-
-    foreach (element_children($form['items']) as $key) {
-      $item_wid = $key;
-      // Clean checkbox
-      unset($form['items'][$key]['#title']);
-
-      // Create action buttons.
-      $reservable = FALSE;
-      if ($form['#builded_entities'][$item_wid]['#object']->ding_entity_type == 'ding_entity' && $form['#builded_entities'][$item_wid]['#object']->is('reservable')) {
-        $reservable = TRUE;
-      }
-
-      $buttons = field_get_items('ting_object', $form['#builded_entities'][$item_wid]['#object'], 'ding_entity_buttons');
-      $buttons_output = field_view_value('ting_object', $form['#builded_entities'][$item_wid]['#object'], 'ding_entity_buttons', $buttons);
-      $buttons_build = ding_bookmark_filter_buttons($buttons_output, $item_wid, $reservable);
-      $row_actions = '<div class="btn-group actions">' . drupal_render($buttons_build) . '</div>';
-      unset($buttons, $buttons_output, $buttons_build);
-
-      //Add row (checkbox, item, buttons).
-      $rows[] = array(
-        array(
-          'data' => drupal_render($form['items'][$key]),
-          'class' => 'checkbox',
-        ),
-        array(
-          'data' => drupal_render($form['#builded_entities'][$item_wid]),
-          'class' => 'object',
-        ),
-        array(
-          'data' => $row_actions,
-          'class' => 'buttons',
-        ),
-      );
-    }
-  }
-
-
-  if (count($rows)) {
-
-    $output .= theme('table__alternative', array(
-      'header' => $header,
-      'rows' => $rows,
-      'attributes' => array('width' => 'auto'),
-    ));
-
-    // Render all remaining elements.
-    $output .= drupal_render_children($form);
-  }
-
-  return $output;
 }
 
 function ding_bookmark_reservation_forms($content_ids) {
