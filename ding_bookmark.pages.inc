@@ -154,11 +154,22 @@ function ding_bookmark_dummy_form($form, &$form_state) {
 function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
   $keys = array_keys($buttons);
   foreach($keys as $i) {
-    if (empty($buttons[$i]['#options']['attributes']['class'])) {
+    $button = NULL;
+    // Check for additional nesting level.
+    if (is_array($buttons[$i])) {
+      if (count($buttons[$i]) > 1) {
+        $button = $buttons[$i];
+      }
+      elseif (count($buttons[$i]) == 1) {
+        $button = current($buttons[$i]);
+      }
+    }
+
+    if (empty($button['#options']['attributes']['class'])) {
       continue;
     }
 
-    $classes = $buttons[$i]['#options']['attributes']['class'];
+    $classes = $button['#options']['attributes']['class'];
     // Remove "Find it here" button.
     if (array_search('find-it-here', $classes) !== FALSE) {
       unset($buttons[$i]);
