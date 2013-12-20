@@ -152,19 +152,40 @@ function ding_bookmark_dummy_form($form, &$form_state) {
  *   Filtered and fixed buttons.
  */
 function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
-  $keys = array_keys($buttons);
+  // Move all nested buttons to top level.
+  $_buttons = $buttons;
+  $buttons = array();
+  $keys = array_keys($_buttons);
   foreach($keys as $i) {
-    $button = NULL;
-    // Check for additional nesting level.
-    if (is_array($buttons[$i])) {
-      if (count($buttons[$i]) > 1) {
-        $button = $buttons[$i];
+    // Theming data.
+    if (!is_numeric($i)) {
+      $buttons[$i] = $_buttons[$i];
+    }
+    else {
+      // Theming data.
+      if (!empty($_buttons[$i]['#theme'])) {
+        $buttons[] = $_buttons[$i];
       }
-      elseif (count($buttons[$i]) == 1) {
-        $button = current($buttons[$i]);
+      else {
+        // Array with buttons.
+        if (!empty($_buttons[$i])) {
+          foreach ($_buttons[$i] as $button) {
+            $buttons[] = $button;
+          }
+        }
       }
     }
+  }
+  unset($_buttons);
 
+  // Filter buttons.
+  $keys = array_keys($buttons);
+  foreach($keys as $i) {
+    if (!is_numeric($i)) {
+      continue;
+    }
+
+    $button = $buttons[$i];
     if (empty($button['#options']['attributes']['class'])) {
       continue;
     }
