@@ -141,6 +141,10 @@ function ding_bookmark_dummy_form($form, &$form_state) {
 /**
  * Filter and fix action buttons.
  *
+ * Removes unwanted buttons and orders them.
+ * Order of buttons from right to left:
+ *   remove bookmark, permalink, see/read online, sfx.
+ *
  * @param array $buttons
  *   Item action buttons.
  * @param string $item_id
@@ -191,25 +195,39 @@ function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
     }
 
     $classes = $button['#options']['attributes']['class'];
+
     // Remove "Find it here" button.
     if (array_search('find-it-here', $classes) !== FALSE) {
       unset($buttons[$i]);
       continue;
     }
+
     // Remove "Show info" button.
     if (array_search('show-info', $classes) !== FALSE) {
       unset($buttons[$i]);
       continue;
     }
+
     // Remove "Hide info" button.
     if (array_search('hide-info', $classes) !== FALSE) {
       unset($buttons[$i]);
       continue;
     }
+
     // Hide "Reserve" button if it is not reservable.
     if (array_search('reservation', $classes) !== FALSE && $reservable == FALSE) {
       unset($buttons[$i]);
       continue;
+    }
+
+    // Set weight for "... online".
+    if (array_search('see-online', $classes) !== FALSE) {
+      $buttons[$i]['#weight'] = 97;
+    }
+
+    // Set weight for permalink.
+    if (array_search('permalink', $classes) !== FALSE) {
+      $buttons[$i]['#weight'] = 99;
     }
 
     // Change bookmark button.
@@ -219,6 +237,7 @@ function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
       $delete_link_query = drupal_get_destination() + array('token' => flag_get_token($item_id));
       $delete_link = array(
         '#theme' => 'link',
+        '#weight' => 100,
         '#text' => '<i class="icon-white icon-remove-sign"></i>&nbsp;' . t($flag->unflag_short),
         '#path' => 'flag/unflag/bookmark/' . $item_id,
         '#options' => array(

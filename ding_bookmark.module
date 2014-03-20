@@ -392,7 +392,13 @@ function ding_bookmark_bookmark_item_ajax($type, $item_id) {
     $bookmark_flag = flag_get_flag('bookmark');
 
     if ($ajax) {
-      $bookmark_form = drupal_render(ding_provider_get_form('flag_confirm', 'flag', $bookmark_flag, $item_id));
+      $flag_confirm = ding_provider_get_form(
+        'flag_confirm',
+        'flag',
+        $bookmark_flag,
+        $item_id
+      );
+      $bookmark_form = drupal_render($flag_confirm);
       $commands[] = ajax_command_invoke('body', 'append', array($bookmark_form));
       // Initialize custom drupal js behavior.
       $commands[] = ding_bookmark_command_init_behavior($item_id);
@@ -438,4 +444,3 @@ function ding_bookmark_command_init_behavior($item_id = '') {
     );
   }
 }
-
