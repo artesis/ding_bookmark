@@ -270,7 +270,7 @@ function ding_bookmark_flag_confirm_form_callback($form, &$form_state) {
   // Popup.
   $response['#commands'][] = ajax_command_ding_popup('ding_bookmark', t('Bookmark'), $html);
   // Allow other modules to modify the command set.
-  $response['#commands'] = module_invoke_all('preprocess_ajax_commands', $response['#commands']);
+  drupal_alter('artesis_ajax_commands', $response['#commands']);
 
   return $response;
 }
