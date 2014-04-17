@@ -269,15 +269,8 @@ function ding_bookmark_flag_confirm_form_callback($form, &$form_state) {
   $html = '<div class="ding-bookmark-message">' . $form_state['storage']['response_html'] . '</div>';
   // Popup.
   $response['#commands'][] = ajax_command_ding_popup('ding_bookmark', t('Bookmark'), $html);
-
-  // Update the user login box.
-  if (module_exists('artesis_backend')) {
-    $resfresh_commands = artesis_backend_refresh_login();
-
-    foreach ($resfresh_commands as $command) {
-      $response['#commands'][] = $command;
-    }
-  }
+  // Allow other modules to modify the command set.
+  drupal_alter('artesis_ajax_commands', $response['#commands']);
 
   return $response;
 }
@@ -402,15 +395,6 @@ function ding_bookmark_bookmark_item_ajax($type, $item_id) {
       $commands[] = ajax_command_invoke('body', 'append', array($bookmark_form));
       // Initialize custom drupal js behavior.
       $commands[] = ding_bookmark_command_init_behavior($item_id);
-
-      // Update the user login box.
-      if (module_exists('artesis_backend')) {
-        $resfresh_commands = artesis_backend_refresh_login();
-
-        foreach ($resfresh_commands as $command) {
-          $commands[] = $command;
-        }
-      }
     }
     else {
       // No-js case: flag without confirmation & redirect back.
