@@ -196,7 +196,7 @@ function ding_bookmark_ding_entity_buttons($type, $entity) {
     drupal_add_library('system', 'jquery.form');
     drupal_add_js(drupal_get_path('module', 'ding_bookmark') . '/js/ding_bookmark.js');
     $bookmark_flag_button = ding_bookmark_flag_view($type, $entity);
-    return array($bookmark_flag_button);
+    return $bookmark_flag_button;
   }
 }
 
@@ -269,15 +269,8 @@ function ding_bookmark_flag_confirm_form_callback($form, &$form_state) {
   $html = '<div class="ding-bookmark-message">' . $form_state['storage']['response_html'] . '</div>';
   // Popup.
   $response['#commands'][] = ajax_command_ding_popup('ding_bookmark', t('Bookmark'), $html);
-
-  // Update the user login box.
-  if (module_exists('artesis_backend')) {
-    $resfresh_commands = artesis_backend_refresh_login();
-
-    foreach ($resfresh_commands as $command) {
-      $response['#commands'][] = $command;
-    }
-  }
+  // Allow other modules to modify the command set.
+  drupal_alter('artesis_ajax_commands', $response['#commands']);
 
   return $response;
 }
@@ -300,17 +293,24 @@ function ding_bookmark_flag_view($entity_type, $entity) {
 
   $flag_confirm_form = array(
     array(
-      '#prefix' => '<div class="bookmark-link-ajax">',
-      '#suffix' => '</div>',
-      '#markup' => l(
-        t('Add to bookmarks'),
-        'ding_bookmark/nojs/bookmark/' . $entity_id,
-        array(
-          'attributes' => array('class' => array('use-ajax')),
-          'absolute' => TRUE,
-          'query' => $link_query,
-        )
+      '#theme' => 'link',
+      '#text' => '<i class="icon-white icon-bookmark"></i>&nbsp;' . t($bookmark_flag->flag_short),
+      '#path' => 'ding_bookmark/nojs/bookmark/' . $entity_id,
+      '#options' => array(
+        'attributes' => array(
+          'class' => array(
+            'use-ajax',
+            'btn',
+            'btn-artesis-turquoise',
+            'bookmark',
+          ),
+          'id' => drupal_html_id('bookmark-' . $entity_id),
+        ),
+        'html' => TRUE,
+        'query' => $link_query,
+        'absolute' => TRUE,
       ),
+      '#weight' => -80,
     ),
   );
 
@@ -385,19 +385,16 @@ function ding_bookmark_bookmark_item_ajax($type, $item_id) {
     $bookmark_flag = flag_get_flag('bookmark');
 
     if ($ajax) {
-      $bookmark_form = drupal_render(ding_provider_get_form('flag_confirm', 'flag', $bookmark_flag, $item_id));
+      $flag_confirm = ding_provider_get_form(
+        'flag_confirm',
+        'flag',
+        $bookmark_flag,
+        $item_id
+      );
+      $bookmark_form = drupal_render($flag_confirm);
       $commands[] = ajax_command_invoke('body', 'append', array($bookmark_form));
       // Initialize custom drupal js behavior.
       $commands[] = ding_bookmark_command_init_behavior($item_id);
-
-      // Update the user login box.
-      if (module_exists('artesis_backend')) {
-        $resfresh_commands = artesis_backend_refresh_login();
-
-        foreach ($resfresh_commands as $command) {
-          $commands[] = $command;
-        }
-      }
     }
     else {
       // No-js case: flag without confirmation & redirect back.
@@ -431,4 +428,3 @@ function ding_bookmark_command_init_behavior($item_id = '') {
     );
   }
 }
-
