@@ -310,7 +310,7 @@ function ding_bookmark_flag_view($entity_type, $entity) {
         'query' => $link_query,
         'absolute' => TRUE,
       ),
-      '#weight' => -80,
+      '#weight' => 102,
     ),
   );
 
