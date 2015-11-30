@@ -222,7 +222,7 @@ function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
 
     // Set weight for "... online".
     if (array_search('see-online', $classes) !== FALSE) {
-      $buttons[$i]['#weight'] = 97;
+      $buttons[$i]['#weight'] = 107;
     }
 
     // Set weight for permalink.
@@ -237,7 +237,7 @@ function ding_bookmark_filter_buttons($buttons, $item_id, $reservable) {
       $delete_link_query = drupal_get_destination() + array('token' => flag_get_token($item_id));
       $delete_link = array(
         '#theme' => 'link',
-        '#weight' => 100,
+        '#weight' => 107,
         '#text' => '<i class="icon-white icon-remove-sign"></i>&nbsp;' . t($flag->unflag_short),
         '#path' => 'flag/unflag/bookmark/' . $item_id,
         '#options' => array(
