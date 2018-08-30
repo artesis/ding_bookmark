@@ -31,16 +31,13 @@ function ding_bookmark_menu() {
     'file' => 'ding_bookmark.pages.inc',
   );
 
-  $items['ding_bookmark/nojs/bookmark/%'] = array(
+  $items['ding_bookmark/bookmark/%'] = array(
     'page callback' => 'ding_bookmark_bookmark_item_ajax',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(2),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
-  );
-
-  $items['ding_bookmark/ajax/bookmark/%'] = array(
     'delivery callback' => 'ajax_deliver',
-  ) + $items['ding_bookmark/nojs/bookmark/%'];
+  );
 
   return $items;
 }
@@ -288,14 +285,11 @@ function ding_bookmark_flag_view($entity_type, $entity) {
   // Store native title.
   $page_native_title = drupal_get_title();
 
-  // Add destination (for no-js).
-  $link_query = drupal_get_destination() + array('token' => flag_get_token($entity_id));
-
   $flag_confirm_form = array(
     array(
       '#theme' => 'link',
       '#text' => '<i class="icon-white icon-bookmark"></i>&nbsp;' . t($bookmark_flag->flag_short),
-      '#path' => 'ding_bookmark/nojs/bookmark/' . $entity_id,
+      '#path' => 'ding_bookmark/bookmark/' . $entity->ding_entity_id,
       '#options' => array(
         'attributes' => array(
           'class' => array(
@@ -307,7 +301,6 @@ function ding_bookmark_flag_view($entity_type, $entity) {
           'id' => drupal_html_id('bookmark-' . $entity_id),
         ),
         'html' => TRUE,
-        'query' => $link_query,
         'absolute' => TRUE,
       ),
       '#weight' => 102,
@@ -368,38 +361,52 @@ function ding_bookmark_ctools_plugin_api() {
  * Requests bookmark form, appends it to the end of the page markup,
  * and simulates a click.
  *
- * @param $item_id
- *   Bookmarked item id.
+ * @param $entity_id
+ *   Entity id to be bookmarked.
  * @see ding_bookmark_flag_view().
  *
  * @return
  *   Array of ajax commands.
  */
-function ding_bookmark_bookmark_item_ajax($type, $item_id) {
+function ding_bookmark_bookmark_item_ajax($entity_id) {
+  $ting_object_entity = ding_entity_load($entity_id, 'ting_object');
+
+  // Disallow direct browser access.
+  //
+  // This would properly redirect to item page when dealing with wayf/saml
+  // after login redirects.
+  //
+  // The wayf/saml login logic relies on drupal_get_destination(), so when
+  // a ding_popup login is initiated the referer would be the ajax route
+  // which is intended to be used only during ajax requests and is not suitable
+  // as redirect destination after wayf authentication. Therefore, redirect
+  // the user to item page instead.
+  $request_method = $_SERVER['REQUEST_METHOD'];
+  if ('GET' == $request_method) {
+    drupal_goto('/search/ting/' . $ting_object_entity->getAcIdentifier());
+  }
+
   $commands = array();
 
-  // Detect AJAX call.
-  $ajax = ($type == 'ajax');
-
-  if (!empty($item_id)) {
+  if ($ting_object_entity instanceof TingEntity) {
     $bookmark_flag = flag_get_flag('bookmark');
 
-    if ($ajax) {
+    if (!user_is_logged_in()) {
+      $commands[] = ajax_command_ding_user_authenticate('');
+    }
+    else {
       $flag_confirm = ding_provider_get_form(
         'flag_confirm',
         'flag',
         $bookmark_flag,
-        $item_id
+        $ting_object_entity->getLocalId()
       );
+
       $bookmark_form = drupal_render($flag_confirm);
+
       $commands[] = ajax_command_invoke('body', 'append', array($bookmark_form));
       // Initialize custom drupal js behavior.
-      $commands[] = ding_bookmark_command_init_behavior($item_id);
-    }
-    else {
-      // No-js case: flag without confirmation & redirect back.
-      $bookmark_flag->flag('flag', $item_id);
-      drupal_goto();
+      $commands[] = ding_bookmark_command_init_behavior($ting_object_entity->getLocalId());
     }
   }
 
