@@ -317,21 +317,21 @@ function ding_bookmark_flag_view($entity_type, $entity) {
  * Display a bookmark item.
  */
 function ding_bookmark_item_view($entity_type, $entity_id) {
-  $type_info = ding_entity_info($entity_type);
-  $entities = entity_load($type_info['entity_type'], array($entity_id));
-  $entity = reset($entities);
-  // Library code can be changed at any time by the site administrator.
+  $entity = ding_entity_load($entity_id);
+
   // Every time when bookmark item is loaded,
-  //  module should check, whether item is available in the current library.
-  // If item does not exists in the library it shoul be deleted from bookmark.
+  // module should check, whether item is available in the current library.
+  // If item does not exists in the library it should be deleted from bookmark.
   if (!$entity) {
     // Remove item.
     $flag = flag_get_flag('bookmark');
     $flag->flag('unflag', $entity_id);
+
     return FALSE;
   }
 
   $build = ding_entity_view($entity, 'user_list');
+
   return $build;
 }
 
